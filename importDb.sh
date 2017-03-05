@@ -1,4 +1,5 @@
 #!/bin/bash
+#http://www.coollai.com/article/bash_import_sql
 
 sysType=$(uname)
 pass='123456'
