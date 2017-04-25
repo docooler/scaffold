@@ -20,6 +20,8 @@ class FilterHead(object):
 		self.usedHead  = []
 		self.ccUsedHead = []
 		self.hUsedHead = []
+		self.linkHeadMap = {}
+		self.rmLinkCount = 0
 
 	def getAllFiles(self, path):
 		for parent, dirnames, filenames in os.walk(path):
@@ -29,6 +31,8 @@ class FilterHead(object):
 				fullPath = os.path.join(parent, filename)
 				#if this file is a soft link skip 
 				if os.path.islink(fullPath):
+					if filename.endswith(".h"):
+						self.linkHeadMap[filename] = fullPath;
 					continue
 				#this is head file
 				if filename.endswith(".h"):					
@@ -58,10 +62,8 @@ class FilterHead(object):
 		self.mergeUsedHead()
 
 	def mergeUsedHead(self):
-		for h in self.ccUsedHead:
-			self.usedHead.append(h)
-		for h in self.hUsedHead:
-			self.usedHead.append(h)
+		self.usedHead += self.ccUsedHead
+		self.usedHead += self.hUsedHead
 
 	def addCCUsedHead(self, heads):
 		for head in heads:
@@ -147,6 +149,8 @@ class FilterHead(object):
 		print "repeat file used"
 		self.isRepeatFileUsed()
 		print "=" * 100
+		self.removeUnusedHead()
+
 		self.outPutInfo()
 		
 		 
@@ -154,6 +158,12 @@ class FilterHead(object):
 		for h in self.headFiles:
 			if h not in self.usedHead:
 				os.remove(self.headMap[h])
+		#remove link file
+		for fileName, fullPath in self.linkHeadMap.items():
+			if fileName not in self.usedHead:
+				os.remove(fullPath)
+				self.rmLinkCount += 1
+
 	def outPutInfo(self):
 		print "=" * 100
 		print ".cc file used head"
@@ -164,11 +174,15 @@ class FilterHead(object):
 		print "=" * 100
 		print "All head file"
 		print len(self.headFiles)
+		print "all link file"
+		print len(self.linkHeadMap)
+		print "remove link file"
+		print self.rmLinkCount
 		print "used head file"
 		print len(self.usedHead)
 		print "=" * 100
-		self.removeUnusedHead()
 		print "done"
+
 
 
 def main():
