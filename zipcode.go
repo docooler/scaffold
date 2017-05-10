@@ -15,7 +15,7 @@ type FileTree struct {
     Files []string
     exclude [] *regexp.Regexp
     zipWrite *zip.Writer
-    zipFile  *os.File
+    zipFile  *os.File 
 }
 
 func NewFileTree(src, dest string) *FileTree{
@@ -44,7 +44,14 @@ func (self *FileTree)ZipDir(path string) error {
                 if ( f == nil ) {return err}
 
                 for _, re := range self.exclude{
-                    if re.MatchString(path) {
+                    if re.MatchString(path) {                    
+                        // println("ignore")
+                        // println(i)
+                        // println(path)
+                        if f.IsDir() {
+                            return filepath.SkipDir;
+                        }
+
                         return nil
                     }
                 }
@@ -52,9 +59,8 @@ func (self *FileTree)ZipDir(path string) error {
                 if f.IsDir() { 
                     return nil
                 }
-
                 
-                println("zip : " + path)
+                println("add : " + path)
                 self.Files = append(self.Files, path)
                 self.ZipFile(f, path)
                 return nil
@@ -99,18 +105,28 @@ func (self *FileTree)Run() {
     self.ZipRoot()
 }
 
-func (self FileTree)Debug() {
-    println("=======start debug========")
-    for _, fName := range self.Files{
-        println(fName)
-    }
-}
 
 func main(){
         flag.Parse()
         root := flag.Arg(0)
         dest := flag.Arg(1)
         ft := NewFileTree(root, dest)
-        ft.AddExclude("unitTest")
+
+        var excludes = []string{ 
+            "/unitTest",
+            "/external/",
+            ".git",
+            "/tags",
+            ".autotools",
+            "/bin",
+            "\\.bin",
+            "\\.build",
+            "/test/",
+            "\\.data",
+            "\\.Po"}
+        for _, condition := range excludes{
+            ft.AddExclude(condition)
+        }
+        
         ft.Run()
 }
