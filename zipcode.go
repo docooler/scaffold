@@ -90,6 +90,7 @@ func (self * FileTree)ZipFile(info os.FileInfo, fName string) error{
     return err
 }
 
+
 func (self *FileTree)ZipRoot() error {
     err := self.ZipDir(self.Root)
     return err
