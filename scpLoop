@@ -1,0 +1,65 @@
+#!/bin/bash
+## ====================================================
+#   CopyLeft 2017 All rights reserved.
+#
+#   Author        : elaiyan
+#   Email         : laiyuan.yang@gmail.com
+#   File Name     : scpLoop
+#   Last Modified : 2017-05-16 11:27 +8
+#   Describe      : test the net speed from 敏感信息 to njLab
+#                               using scp
+#
+#   Log           :
+#
+# ====================================================
+xlf=$1
+csv=$2
+
+usage_exit()
+{
+        echo "USAGE $0 <xlf> <csv>"
+        exit 1
+}
+
+file2lab(){
+        scp -C ${xlf} root@10.186.133.137:/root/xlf/
+}
+
+timestamp(){
+        date +"%s"
+}
+
+timeNow(){
+        date +"%T"
+}
+
+if [ x${xlf} = x ]; then
+        usage_exit
+fi
+
+if [ x${csv} = x ]; then
+        usage_exit
+fi
+
+echo "index,start,end,using">${csv}
+
+for (( i = 0; i < 100000; i++ )); do
+        echo "================================="
+        echo "Test scp speed in lab times : ${i}"
+        start=$(timeNow)
+        startSecond=$(timestamp)
+        file2lab
+
+        endSecond=$(timestamp)
+        end=$(timeNow)
+        let "sT=$endSecond-$startSecond"
+
+        echo "index : ${i} start : ${start} end : ${end} using : ${sT}s"
+        echo "${i},${start},${end},${sT}">>${csv}
+
+        sleep 3
+
+        echo "================================="
+done
+
+echo "done"
