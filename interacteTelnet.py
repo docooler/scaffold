@@ -22,7 +22,7 @@ class UpdateTimer(wx.Timer):
 class wxEdit(wx.Frame):
     """docstring for wxEdit"""
     def __init__(self, parent, title, host, port):
-        wx.Frame.__init__(self, parent, title=title, size=(1000,900))
+        wx.Frame.__init__(self, parent, title=title, size=(1100,1000))
         
         self.CreateStatusBar()
 
@@ -66,11 +66,17 @@ class wxEdit(wx.Frame):
 
         font = wx.Font(8, wx.MODERN, wx.NORMAL, wx.NORMAL, faceName="Lucida Console")
         commandId = wx.NewId()
-        self.control = wx.TextCtrl(self.panel, commandId, value="[command]", pos=(0,600),  size=(990,30), style=wx.TE_PROCESS_ENTER)
+        self.control = wx.TextCtrl(self.panel, commandId, value="[command]", pos=(0,610),  size=(950,60), style=wx.TE_PROCESS_ENTER)
         self.Bind(wx.EVT_TEXT_ENTER, self.OnEnter, self.control)
-        
+
+        self.input = wx.TextCtrl(self.panel, -1, value="", pos=(0, 680), size=(950,200), style=wx.TE_MULTILINE)
+        sendBtn = wx.Button(self.panel, -1, "Send", pos=(960, 825))
+        self.Bind(wx.EVT_BUTTON, self.OnSend, sendBtn)
+
         self.tn = Telnet(host, port) # connect to host
         self.timer = UpdateTimer(self, 100) # update five times a second
+
+        self.dirname = None
 
         self.Show(True)
 
@@ -120,6 +126,11 @@ class wxEdit(wx.Frame):
             dirname = dlg.GetDirectory()
             self.control.SaveFile(os.path.join(dirname, filename))
             
+    def OnSend(self, e):
+        temp = self.input.GetValue() 
+        cmds = unicode(temp).encode('utf8') + "\n"
+        self.tn.write(cmds)
+        self.control.SetSelection(0, self.command.GetLastPosition()) 
         
 
     def OnAbout(self, e):
@@ -128,13 +139,15 @@ class wxEdit(wx.Frame):
         dlg.Destroy()
     
     def OnExit(self, e):
+        self.tn.close()
+        self.timer.Stop()
         self.Close(True)
     def OnEnter(self, e):
         """The user has entered a command.  Send it!"""
         cmd = e.GetString()
         cmd = unicode(cmd).encode('utf8')
         # print cmd
-        self.tn.write(cmd + "\r\n")
+        self.tn.write(cmd + "\n")
         self.control.SetSelection(0, self.control.GetLastPosition())
         self.control.Clear()
     
