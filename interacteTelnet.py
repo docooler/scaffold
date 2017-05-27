@@ -124,7 +124,9 @@ class wxEdit(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetFilename()
             dirname = dlg.GetDirectory()
-            self.control.SaveFile(os.path.join(dirname, filename))
+            fileFd = open(os.path.join(dirname, filename), 'w')
+            fileFd.write(self.output.GetValue())
+            fileFd.close()
             
     def OnSend(self, e):
         temp = self.input.GetValue() 
@@ -156,7 +158,7 @@ def parse_xml(fd):
     return
 def main(host, port):
     app = wx.App(False)
-    edit = wxEdit(None, 'telnet terminal', host, port)
+    edit = wxEdit(None, 'ELAIYAN Telnet Terminal', host, port)
     app.MainLoop()
 if __name__ == '__main__':
     import sys
